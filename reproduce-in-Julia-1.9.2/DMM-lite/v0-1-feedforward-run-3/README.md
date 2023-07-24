@@ -38,4 +38,4 @@ julia>
 
 Yes, this still looks fine.
 
-Perhaps, a tiny bit of slowdown (127 seconds vs 111 seconds, so it looks like about 15% slower at the moment).
+Perhaps, a bit of slowdown (127 seconds vs 111 seconds, so it looks like about 15% slower at the moment).

@@ -29,14 +29,17 @@ end
 #   "y" => -15.0
 
 function mult_mask_v_value(mult_mask::Dict{String, Any} , v_value::Dict{String, Any})
-    joint_keys = Set(keys(mult_mask)) ∩ Set(keys(v_value))
-    number_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict)])
-    dict_keys = Set([key for key in joint_keys if mult_mask[key] isa Dict && v_value[key] isa Dict])
-    mult_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && v_value[key] isa Dict])
+    joint_keys = Dict{String, Any}(key => 1.0 for key in keys(merge(mult_mask, v_value)))
+    number_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+	                                if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict))
+    dict_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+	                              if mult_mask[key] isa Dict && v_value[key] isa Dict)
+    mult_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+	                              if !(mult_mask[key] isa Dict) && v_value[key] isa Dict)
     # the remaining case does not generate values and is omitted
-    number_key_values = Dict(key => (mult_mask[key]*v_value[key]) for key in number_keys)
-    dict_key_values = Dict(key => mult_mask_v_value(mult_mask[key], v_value[key]) for key in dict_keys)
-    mult_key_values = Dict(key => mult_v_value(mult_mask[key], v_value[key]) for key in mult_keys) 
+    number_key_values = Dict(key => (mult_mask[key]*v_value[key]) for key in keys(number_keys))
+    dict_key_values = Dict(key => mult_mask_v_value(mult_mask[key], v_value[key]) for key in keys(dict_keys))
+    mult_key_values = Dict(key => mult_v_value(mult_mask[key], v_value[key]) for key in keys(mult_keys)) 
     merge(number_key_values, dict_key_values, mult_key_values)
 end
 

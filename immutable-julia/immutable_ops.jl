@@ -40,6 +40,12 @@ function mult_mask_v_value(mult_mask::Dict{String, Any} , v_value::Dict{String, 
     merge(number_key_values, dict_key_values, mult_key_values)
 end
 
+# julia> mult_mask_v_value(d, d)
+# Dict{Any, Any} with 3 entries:
+#  "x" => 64.0
+#  "a" => Dict{Any, Any}("v"=>81.0, "t"=>49.0)
+#  "y" => 9.0
+
 function add_v_values(v_values...)
     trees = [v_value for v_value in v_values if v_value isa Dict]
     numbers = [v_value for v_value in v_values if !(v_value isa Dict)]
@@ -54,3 +60,45 @@ function add_v_values(v_values...)
     )
     return merged
 end
+
+# julia> tree1 = Dict{String, Any}("a" => 1, "b" => Dict{String, Any}("c" => 2, "d" => 3), "e" => 4)
+# Dict{String, Any} with 3 entries:
+#   "e" => 4
+#   "b" => Dict{String, Any}("c"=>2, "d"=>3)
+#   "a" => 1
+# 
+# julia> tree2 = Dict{String, Any}("a" => Dict{String, Any}("z" => 0), "b" => Dict{String, Any}("c" => 6), "f" => 7)
+# Dict{String, Any} with 3 entries:
+#   "f" => 7
+#   "b" => Dict{String, Any}("c"=>6)
+#   "a" => Dict{String, Any}("z"=>0)
+# 
+# julia> tree3 = Dict{String, Any}("b" => 7)
+# Dict{String, Any} with 1 entry:
+#   "b" => 7
+# 
+# julia> add_v_values(tree1, tree2)
+# Dict{String, Any} with 4 entries:
+#   "f" => 7
+#   "e" => 4
+#   "b" => Dict("c"=>8, "d"=>3)
+#   "a" => Dict(":number"=>1, "z"=>0)
+# 
+# julia> add_v_values(tree1, tree3)
+# Dict{String, Any} with 3 entries:
+#   "e" => 4
+#   "b" => Dict(":number"=>7, "c"=>2, "d"=>3)
+#   "a" => 1
+# 
+# julia> add_v_values(tree2, tree3)
+# Dict{String, Any} with 3 entries:
+#   "f" => 7
+#   "b" => Dict(":number"=>7, "c"=>6)
+#   "a" => Dict("z"=>0)
+# 
+# julia> add_v_values(tree1, tree2, tree3)
+# Dict{String, Any} with 4 entries:
+#   "f" => 7
+#   "e" => 4
+#   "b" => Dict(":number"=>7, "c"=>8, "d"=>3)
+#   "a" => Dict(":number"=>1, "z"=>0)

@@ -107,14 +107,17 @@ end
 #   "a" => Dict(":number"=>1, "z"=>0)
 
 function mult_mask_lin_comb(mult_mask::Dict{String, Any} , v_value::Dict{String, Any})
-    joint_keys = Set(keys(mult_mask)) ∩ Set(keys(v_value))
-    number_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict)])
-    dict_keys = Set([key for key in joint_keys if mult_mask[key] isa Dict && v_value[key] isa Dict])
-    mult_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && v_value[key] isa Dict])
+    joint_keys = Dict{String, Any}(key => 1.0 for key in keys(merge(mult_mask, v_value)))
+    number_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+	                                if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict))
+    dict_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+	                              if mult_mask[key] isa Dict && v_value[key] isa Dict)
+    mult_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+	                              if !(mult_mask[key] isa Dict) && v_value[key] isa Dict)
     # the remaining case does not generate values and is omitted
-    number_values = [mult_mask[key]*v_value[key] for key in number_keys]
-    dict_values = [mult_mask_lin_comb(mult_mask[key], v_value[key]) for key in dict_keys]
-    mult_values = [mult_v_value(mult_mask[key], v_value[key]) for key in mult_keys] 
+    number_values = [mult_mask[key]*v_value[key] for key in keys(number_keys)]
+    dict_values = [mult_mask_lin_comb(mult_mask[key], v_value[key]) for key in keys(dict_keys)]
+    mult_values = [mult_v_value(mult_mask[key], v_value[key]) for key in keys(mult_keys)] 
     add_v_values(vcat(number_values, dict_values, mult_values)...)
 end
 

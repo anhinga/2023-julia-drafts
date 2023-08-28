@@ -53,10 +53,10 @@ function add_v_values(v_values...)
         return sum(numbers)
     end
     all_trees = !isempty(numbers) ? [trees..., Dict(":number" => sum(numbers))] : trees
-    all_keys = Set([key for tree in all_trees for key in keys(tree)])
+    all_keys = Dict{String, Any}(key => 1.0 for tree in all_trees for key in keys(tree))
     merged = Dict(
         key => add_v_values([tree[key] for tree in all_trees if haskey(tree, key)]...)
-        for key in all_keys
+        for key in keys(all_keys)
     )
     return merged
 end

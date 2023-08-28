@@ -110,7 +110,7 @@ function mult_mask_lin_comb(mult_mask::Dict{String, Any} , v_value::Dict{String,
     mult_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && v_value[key] isa Dict])
     # the remaining case does not generate values and is omitted
     number_values = [mult_mask[key]*v_value[key] for key in number_keys]
-    dict_values = [mult_mask_v_value(mult_mask[key], v_value[key]) for key in dict_keys]
+    dict_values = [mult_mask_lin_comb(mult_mask[key], v_value[key]) for key in dict_keys]
     mult_values = [mult_v_value(mult_mask[key], v_value[key]) for key in mult_keys] 
     add_v_values(vcat(number_values, dict_values, mult_values)...)
 end
@@ -130,10 +130,8 @@ end
 # julia> mult_mask_lin_comb(dict_a, dict_a)
 # 19.25
 #
-# julia> mult_mask_lin_comb(dict_f, dict_f) # INCORRECT RESULT!
-# Dict{String, Float64} with 2 entries:
-#   ":number" => 49.0
-#   "u"       => 1.0
+# julia> mult_mask_lin_comb(dict_f, dict_f)
+# 50.0
 #
 #  julia> mult_mask_lin_comb(dict_a, dict_f)
 #  Dict{String, Float64} with 2 entries:

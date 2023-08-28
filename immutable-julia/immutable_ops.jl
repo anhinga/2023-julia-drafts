@@ -140,3 +140,41 @@ end
 #
 # julia> mult_mask_lin_comb(dict_f, dict_a)
 # 13.0
+
+But gradients don't work with sets!!!
+
+julia> function self_apply(x)
+           return mult_mask_lin_comb(x, x)
+       end
+self_apply (generic function with 1 method)
+
+julia> self_apply(dict_f)
+50.0
+
+julia> this_grad = gradient(self_apply, dict_f)
+ERROR: map is not defined on sets
+Stacktrace:
+  [1] error(s::String)
+    @ Base .\error.jl:35
+  [2] map(f::Function, #unused#::Set{String})
+    @ Base .\abstractarray.jl:3292
+  [3] ∇map(cx::Zygote.Context{false}, f::var"#100#106"{Dict{String, Any}, Dict{String, Any}}, args::Set{String})
+    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\lib\array.jl:201
+  [4] _pullback(cx::Zygote.Context{false}, #unused#::typeof(collect), g::Base.Generator{Set{String}, var"#100#106"{Dict{String, Any}, Dict{String, Any}}})
+    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\lib\array.jl:244
+  [5] _pullback
+    @ .\REPL[80]:7 [inlined]
+  [6] _pullback(::Zygote.Context{false}, ::typeof(mult_mask_lin_comb), ::Dict{String, Any}, ::Dict{String, Any})
+    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface2.jl:0
+  [7] _pullback
+    @ .\REPL[86]:2 [inlined]
+  [8] _pullback(ctx::Zygote.Context{false}, f::typeof(self_apply), args::Dict{String, Any})
+    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface2.jl:0
+  [9] pullback(f::Function, cx::Zygote.Context{false}, args::Dict{String, Any})
+    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface.jl:44
+ [10] pullback
+    @ C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface.jl:42 [inlined]
+ [11] gradient(f::Function, args::Dict{String, Any})
+    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface.jl:96
+ [12] top-level scope
+    @ REPL[88]:1

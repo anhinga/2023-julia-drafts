@@ -32,7 +32,7 @@ function mult_mask_v_value(mult_mask::Dict{String, Any} , v_value::Dict{String, 
     joint_keys = Set(keys(mult_mask)) ∩ Set(keys(v_value))
     number_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict)])
     dict_keys = Set([key for key in joint_keys if mult_mask[key] isa Dict && v_value[key] isa Dict])
-    mult_keys = setdiff(setdiff(joint_keys, number_keys), dict_keys)
+    mult_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && v_value[key] isa Dict])
     # the remaining case does not generate values and is omitted
     number_key_values = Dict(key => (mult_mask[key]*v_value[key]) for key in number_keys)
     dict_key_values = Dict(key => mult_mask_v_value(mult_mask[key], v_value[key]) for key in dict_keys)
@@ -102,3 +102,43 @@ end
 #   "e" => 4
 #   "b" => Dict(":number"=>7, "c"=>8, "d"=>3)
 #   "a" => Dict(":number"=>1, "z"=>0)
+
+function mult_mask_lin_comb(mult_mask::Dict{String, Any} , v_value::Dict{String, Any})
+    joint_keys = Set(keys(mult_mask)) ∩ Set(keys(v_value))
+    number_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict)])
+    dict_keys = Set([key for key in joint_keys if mult_mask[key] isa Dict && v_value[key] isa Dict])
+    mult_keys = Set([key for key in joint_keys if !(mult_mask[key] isa Dict) && v_value[key] isa Dict])
+    # the remaining case does not generate values and is omitted
+    number_values = [mult_mask[key]*v_value[key] for key in number_keys]
+    dict_values = [mult_mask_v_value(mult_mask[key], v_value[key]) for key in dict_keys]
+    mult_values = [mult_v_value(mult_mask[key], v_value[key]) for key in mult_keys] 
+    add_v_values(vcat(number_values, dict_values, mult_values)...)
+end
+
+# julia> dict_a = Dict{String, Any}("a" => 2.0, "b" => 3.0, "c" => 2.5)
+# Dict{String, Any} with 3 entries:
+#   "c" => 2.5
+#   "b" => 3.0
+#   "a" => 2.0
+#
+# julia> dict_f = Dict{String, Any}("a" => 2.0, "b" => 3.0, "c" => Dict{String, Any}(":number" => 6.0, "u" => 1.0))
+# Dict{String, Any} with 3 entries:
+#   "c" => Dict{String, Any}(":number"=>6.0, "u"=>1.0)
+#   "b" => 3.0
+#   "a" => 2.0
+#
+# julia> mult_mask_lin_comb(dict_a, dict_a)
+# 19.25
+#
+# julia> mult_mask_lin_comb(dict_f, dict_f) # INCORRECT RESULT!
+# Dict{String, Float64} with 2 entries:
+#   ":number" => 49.0
+#   "u"       => 1.0
+#
+#  julia> mult_mask_lin_comb(dict_a, dict_f)
+#  Dict{String, Float64} with 2 entries:
+#   ":number" => 28.0
+#   "u"       => 2.5
+#
+# julia> mult_mask_lin_comb(dict_f, dict_a)
+# 13.0

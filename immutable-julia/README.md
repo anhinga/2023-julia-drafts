@@ -31,4 +31,7 @@ generated for Zygote-produced gradient code using sets and keysets.
 
 So it is not clear if this is a viable direction.
 
-
+GPT-4 has been very helpful in assisting this translation from immutable Python
+to immutable Julia, but it is not clear if it can be of much help with
+Zygote intricacies (in my experience, both today and earlier, it does not
+understand Zygote intricacies all that well).

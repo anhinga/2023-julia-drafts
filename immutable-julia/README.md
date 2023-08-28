@@ -35,3 +35,18 @@ GPT-4 has been very helpful in assisting this translation from immutable Python
 to immutable Julia, but it is not clear if it can be of much help with
 Zygote intricacies (in my experience, both today and earlier, it does not
 understand Zygote intricacies all that well).
+
+P.S. In the latest variant, I managed to get rid of sets completely, but I am
+getting
+
+```
+ERROR: MethodError: no method matching (::ChainRulesCore.ProjectTo{AbstractArray, NamedTuple{(:element, :axes), Tuple{ChainRulesCore.ProjectTo{Float64, NamedTuple{(), Tuple{}}}, Tuple{Base.OneTo{Int64}}}}})(::Tuple{Float64, Float64})
+```
+
+This looks more manageable, but I am going to postpone this. Basically, the problem
+of needing a help of a Zygote expert remains, just like it has been the case with
+
+https://github.com/anhinga/late-2022-julia-drafts/tree/main/dmm-port-from-clojure/using-Zygote
+
+I am going to see if JAX handles this for me without any expert help,
+and I'll eventually revisit the Julia route.

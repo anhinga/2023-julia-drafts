@@ -29,17 +29,17 @@ end
 #   "y" => -15.0
 
 function mult_mask_v_value(mult_mask::Dict{String, Any} , v_value::Dict{String, Any})
-    joint_keys = Dict{String, Any}(key => 1.0 for key in keys(merge(mult_mask, v_value)))
-    number_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+    joint_keys = Dict{String, Any}(key => 1.0 for (key, value) in merge(mult_mask, v_value))
+    number_keys = Dict{String, Any}(key => 1.0 for (key, value) in joint_keys 
 	                                if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict))
-    dict_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+    dict_keys = Dict{String, Any}(key => 1.0 for (key, value) in joint_keys 
 	                              if mult_mask[key] isa Dict && v_value[key] isa Dict)
-    mult_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+    mult_keys = Dict{String, Any}(key => 1.0 for (key, value) in joint_keys
 	                              if !(mult_mask[key] isa Dict) && v_value[key] isa Dict)
     # the remaining case does not generate values and is omitted
-    number_key_values = Dict(key => (mult_mask[key]*v_value[key]) for key in keys(number_keys))
-    dict_key_values = Dict(key => mult_mask_v_value(mult_mask[key], v_value[key]) for key in keys(dict_keys))
-    mult_key_values = Dict(key => mult_v_value(mult_mask[key], v_value[key]) for key in keys(mult_keys)) 
+    number_key_values = Dict(key => (mult_mask[key]*v_value[key]) for (key, value) in number_keys)
+    dict_key_values = Dict(key => mult_mask_v_value(mult_mask[key], v_value[key]) for (key, value) in dict_keys)
+    mult_key_values = Dict(key => mult_v_value(mult_mask[key], v_value[key]) for (key, value) in mult_keys) 
     merge(number_key_values, dict_key_values, mult_key_values)
 end
 
@@ -56,10 +56,10 @@ function add_v_values(v_values...)
         return sum(numbers)
     end
     all_trees = !isempty(numbers) ? [trees..., Dict(":number" => sum(numbers))] : trees
-    all_keys = Dict{String, Any}(key => 1.0 for tree in all_trees for key in keys(tree))
+    all_keys = Dict{String, Any}(key => 1.0 for tree in all_trees for (key, value) in tree)
     merged = Dict(
         key => add_v_values([tree[key] for tree in all_trees if haskey(tree, key)]...)
-        for key in keys(all_keys)
+        for (key, value) in all_keys
     )
     return merged
 end
@@ -107,17 +107,17 @@ end
 #   "a" => Dict(":number"=>1, "z"=>0)
 
 function mult_mask_lin_comb(mult_mask::Dict{String, Any} , v_value::Dict{String, Any})
-    joint_keys = Dict{String, Any}(key => 1.0 for key in keys(merge(mult_mask, v_value)))
-    number_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+    joint_keys = Dict{String, Any}(key => 1.0 for (key, value) in merge(mult_mask, v_value))
+    number_keys = Dict{String, Any}(key => 1.0 for (key, value) in joint_keys 
 	                                if !(mult_mask[key] isa Dict) && !(v_value[key] isa Dict))
-    dict_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+    dict_keys = Dict{String, Any}(key => 1.0 for (key, value) in joint_keys  
 	                              if mult_mask[key] isa Dict && v_value[key] isa Dict)
-    mult_keys = Dict{String, Any}(key => 1.0 for key in keys(joint_keys) 
+    mult_keys = Dict{String, Any}(key => 1.0 for (key, value) in joint_keys  
 	                              if !(mult_mask[key] isa Dict) && v_value[key] isa Dict)
     # the remaining case does not generate values and is omitted
-    number_values = [mult_mask[key]*v_value[key] for key in keys(number_keys)]
-    dict_values = [mult_mask_lin_comb(mult_mask[key], v_value[key]) for key in keys(dict_keys)]
-    mult_values = [mult_v_value(mult_mask[key], v_value[key]) for key in keys(mult_keys)] 
+    number_values = [mult_mask[key]*v_value[key] for (key, value) in number_keys]
+    dict_values = [mult_mask_lin_comb(mult_mask[key], v_value[key]) for (key, value) in dict_keys]
+    mult_values = [mult_v_value(mult_mask[key], v_value[key]) for (key, value) in mult_keys]
     add_v_values(vcat(number_values, dict_values, mult_values)...)
 end
 
@@ -158,29 +158,34 @@ julia> self_apply(dict_f)
 50.0
 
 julia> this_grad = gradient(self_apply, dict_f)
-ERROR: map is not defined on sets
+ERROR: MethodError: no method matching (::ChainRulesCore.ProjectTo{AbstractArray, NamedTuple{(:element, :axes), Tuple{ChainRulesCore.ProjectTo{Float64, NamedTuple{(), Tuple{}}}, Tuple{Base.OneTo{Int64}}}}})(::Tuple{Float64, Float64})
+
+Closest candidates are:
+  (::ChainRulesCore.ProjectTo{AbstractArray})(::Union{LinearAlgebra.Adjoint{T, var"#s971"}, LinearAlgebra.Transpose{T, var"#s971"}} where {T, var"#s971"<:(AbstractVector)})
+   @ ChainRulesCore C:\Users\anhin\.julia\packages\ChainRulesCore\0t04l\src\projection.jl:247
+  (::ChainRulesCore.ProjectTo{AbstractArray})(::AbstractArray{<:ChainRulesCore.AbstractZero})
+   @ ChainRulesCore C:\Users\anhin\.julia\packages\ChainRulesCore\0t04l\src\projection.jl:244
+  (::ChainRulesCore.ProjectTo{AbstractArray})(::AbstractArray{S, M}) where {S, M}
+   @ ChainRulesCore C:\Users\anhin\.julia\packages\ChainRulesCore\0t04l\src\projection.jl:219
+  ...
+
 Stacktrace:
-  [1] error(s::String)
-    @ Base .\error.jl:35
-  [2] map(f::Function, #unused#::Base.KeySet{String, Dict{String, Any}})
-    @ Base .\abstractarray.jl:3292
-  [3] ∇map(cx::Zygote.Context{false}, f::var"#170#180"{Dict{String, Any}, Dict{String, Any}}, args::Base.KeySet{String, Dict{String, Any}})
-    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\lib\array.jl:201
-  [4] _pullback(cx::Zygote.Context{false}, #unused#::typeof(collect), g::Base.Generator{Base.KeySet{String, Dict{String, Any}}, var"#170#180"{Dict{String, Any}, Dict{String, Any}}})
-    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\lib\array.jl:244
-  [5] _pullback
-    @ .\REPL[118]:10 [inlined]
-  [6] _pullback(::Zygote.Context{false}, ::typeof(mult_mask_lin_comb), ::Dict{String, Any}, ::Dict{String, Any})
-    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface2.jl:0
-  [7] _pullback
-    @ .\REPL[123]:2 [inlined]
-  [8] _pullback(ctx::Zygote.Context{false}, f::typeof(self_apply), args::Dict{String, Any})
-    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface2.jl:0
-  [9] pullback(f::Function, cx::Zygote.Context{false}, args::Dict{String, Any})
-    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface.jl:44
- [10] pullback
-    @ C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface.jl:42 [inlined]
- [11] gradient(f::Function, args::Dict{String, Any})
-    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\interface.jl:96
- [12] top-level scope
-    @ REPL[125]:1
+  [1] (::ChainRules.var"#1411#1416"{ChainRulesCore.ProjectTo{AbstractArray, NamedTuple{(:element, :axes), Tuple{ChainRulesCore.ProjectTo{Float64, NamedTuple{(), Tuple{}}}, Tuple{Base.OneTo{Int64}}}}}, Tuple{UnitRange{Int64}}, ChainRulesCore.Tangent{Any, Tuple{Float64, Float64, Float64}}})()
+    @ ChainRules C:\Users\anhin\.julia\packages\ChainRules\9sNmB\src\rulesets\Base\array.jl:310
+  [2] unthunk
+    @ C:\Users\anhin\.julia\packages\ChainRulesCore\0t04l\src\tangent_types\thunks.jl:204 [inlined]
+  [3] unthunk(x::ChainRulesCore.InplaceableThunk{ChainRulesCore.Thunk{ChainRules.var"#1411#1416"{ChainRulesCore.ProjectTo{AbstractArray, NamedTuple{(:element, :axes), Tuple{ChainRulesCore.ProjectTo{Float64, NamedTuple{(), Tuple{}}}, Tuple{Base.OneTo{Int64}}}}}, Tuple{UnitRange{Int64}}, ChainRulesCore.Tangent{Any, Tuple{Float64, Float64, Float64}}}}, ChainRules.var"#1410#1415"{Tuple{UnitRange{Int64}}, ChainRulesCore.Tangent{Any, Tuple{Float64, Float64, Float64}}}})
+    @ ChainRulesCore C:\Users\anhin\.julia\packages\ChainRulesCore\0t04l\src\tangent_types\thunks.jl:237
+  [4] wrap_chainrules_output
+    @ C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\chainrules.jl:110 [inlined]
+  [5] map
+    @ .\tuple.jl:275 [inlined]
+  [6] map
+    @ .\tuple.jl:276 [inlined]
+  [7] wrap_chainrules_output
+    @ C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\chainrules.jl:111 [inlined]
+  [8] (::Zygote.ZBack{ChainRules.var"#vcat_pullback#1412"{Tuple{ChainRulesCore.ProjectTo{AbstractArray, NamedTuple{(:element, :axes), Tuple{ChainRulesCore.ProjectTo{Float64, NamedTuple{(), Tuple{}}}, Tuple{Base.OneTo{Int64}}}}}, ChainRulesCore.ProjectTo{AbstractArray, NamedTuple{(:element, :axes), Tuple{ChainRulesCore.ProjectTo{Float64, NamedTuple{(), Tuple{}}}, Tuple{Base.OneTo{Int64}}}}}, ChainRulesCore.ProjectTo{AbstractArray, NamedTuple{(:elements, :axes), Tuple{Vector{Any}, Tuple{Base.OneTo{Int64}}}}}}, Tuple{Tuple{Int64}, Tuple{Int64}, Tuple{Int64}}, Val{1}}})(dy::Tuple{Float64, Float64, Float64})
+    @ Zygote C:\Users\anhin\.julia\packages\Zygote\4rucm\src\compiler\chainrules.jl:211
+  [9] Pullback
+    @ .\REPL[148]:13 [inlined]
+ [10] (::Zygote.Pullback{Tuple{typeof(mult_mask_lin_comb), Dict{String, Any}, Dict{String, Any}}, Tuple{Zygote.Pullback{Tuple{Type{Base.Generator}, var"#226#236", Vector{Pair{String, Any}}}, Tuple{Zygote.Pullback{Tuple{Type{Base.Generator{Vector{Pair{String, Any}}, var"#226#236"}}, var"#226#236", Vector{Pair{String, Any}}}, Tuple{Zygote.var"#2214#back#313"{Zygote.Jnew{Base.Generator{Vector{Pair{String, Any}},

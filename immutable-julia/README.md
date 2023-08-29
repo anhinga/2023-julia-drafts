@@ -36,7 +36,7 @@ to immutable Julia, but it is not clear if it can be of much help with
 Zygote intricacies (in my experience, both today and earlier, it does not
 understand Zygote intricacies all that well).
 
-P.S. In the latest variant, I managed to get rid of sets completely, but I am
+P.S. In the latest variant of [immutable_ops.jl](immutable_ops.jl), I managed to get rid of sets completely, but I am
 getting
 
 ```
@@ -47,6 +47,10 @@ This looks more manageable, but I am going to postpone this. Basically, the prob
 of needing a help of a Zygote expert remains, just like it has been the case with
 
 https://github.com/anhinga/late-2022-julia-drafts/tree/main/dmm-port-from-clojure/using-Zygote
+
+(I've also tried [small-experiment.jl](small-experiment.jl), and getting a complaint
+about "try-catch problem" without any simple way to address this, while using only very
+standard constructions and not using any try-catch operators, is quite frustrating.)
 
 I am going to see if JAX handles this for me without any expert help,
 and I'll eventually revisit the Julia route.

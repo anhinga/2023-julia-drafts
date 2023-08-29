@@ -31,3 +31,17 @@ end
 #
 # julia> this_grad = gradient(norm, d)
 # (Dict{Any, Any}("x" => 16.0, "a" => Dict{Any, Any}("v" => -18.0, "t" => 14.0), "y" => -6.0),)
+
+function norm2(v_value)
+    if typeof(v_value) <: Number
+        return v_value*v_value
+    else
+        return sum(norm(value) for (key, value) in v_value)
+    end
+end
+
+# julia> norm2(d)
+# 203.0
+# 
+# julia> this_grad = gradient(norm2, d)
+# (Dict{Any, Any}("x" => 16.0, "a" => Dict{Any, Any}("v" => -18.0, "t" => 14.0), "y" => -6.0),)

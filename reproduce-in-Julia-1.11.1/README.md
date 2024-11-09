@@ -18,3 +18,7 @@ Package versions:
   [5e47fb64] TestImages v1.9.0
   [e88e6eb3] Zygote v0.6.72
 ```
+
+[Float64-version-of-Nov-3-2024.ipynb](Float64-version-of-Nov-3-2024.ipynb) - same experiment with Float64 instead of Float32
+
+The convergence dynamics is more robust and less erratic (and the end loss value is better), but the best loss value is not as good as with Float32
